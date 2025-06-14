@@ -136,3 +136,54 @@ service amazon-cloudwatch-agent status
 ```
 
 > Nếu hiển thị `active (running)` là bạn đã cài đặt thành công.
+
+## Phase 4: Kiểm tra CloudWatch Agent và log clickstream
+
+### 1. Kiểm tra file access_log
+
+Truy cập ứng dụng web café và thực hiện một số hành động như xem menu, đặt hàng để tạo log.
+
+Dùng lại lệnh như Phase 2 Task 3 để xem nội dung được ghi vào file log truy cập:
+
+```bash
+tail -f /var/log/www/access/access_log
+```
+
+> Lưu ý: log giờ đây sẽ được ghi dưới định dạng JSON.
+
+---
+
+### 2. Kiểm tra file `amazon-cloudwatch-agent.log`
+
+Xác định vị trí file log của agent:
+
+```bash
+sudo cat /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
+```
+
+Kiểm tra có các dòng như sau không:
+
+```text
+[inputs.logfile] Reading from offset 10620 in /var/log/www/error/error_log
+[inputs.logfile] Reading from offset 19850 in /var/log/www/access/access_log
+[logagent] piping log from apache/error/i-<instance-id> to cloudwatchlogs
+[logagent] piping log from apache/access/i-<instance-id> to cloudwatchlogs
+```
+
+> Những dòng này xác nhận rằng agent đang đọc log và gửi lên CloudWatch. Bỏ qua các lỗi như `permission denied` trên `/sys/kernel/debug/tracing`.
+
+---
+
+### 3. Đặt hàng và kiểm tra log trên CloudWatch
+
+- Truy cập website: `http://<public-ip>/cafe`
+- Vào trang Menu, đặt một đơn hàng (sử dụng thiết bị di động nếu muốn thay đổi User-Agent).
+
+Kiểm tra log:
+
+- Mở AWS CloudWatch Console.
+- Vào **Log Groups** → `apache/access`
+- Mở log stream tương ứng.
+- Mở rộng dòng log đầu tiên, xác minh hành động vừa thực hiện có được ghi nhận (dạng JSON).
+
+> Clickstream data hiện đã được thu thập và lưu trên CloudWatch Logs thông qua CloudWatch Agent chạy trên web server.
