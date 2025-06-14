@@ -187,3 +187,66 @@ Kiểm tra log:
 - Mở rộng dòng log đầu tiên, xác minh hành động vừa thực hiện có được ghi nhận (dạng JSON).
 
 > Clickstream data hiện đã được thu thập và lưu trên CloudWatch Logs thông qua CloudWatch Agent chạy trên web server.
+
+## Phase 5: Sử dụng log giả lập và xác minh CloudWatch nhận đủ dữ liệu
+
+Trong pha này, bạn sẽ thay thế file `access_log` hiện tại bằng một file log giả lập có sẵn. File này chứa nhiều dòng log truy cập hơn nhiều so với việc bạn tự tay truy cập website. Nhờ đó bạn có thể kiểm tra khả năng xử lý log ở quy mô lớn của CloudWatch Agent.
+
+### 1. Phân tích file log giả lập
+
+Xem vài dòng đầu của file log mẫu:
+
+```bash
+cat samplelogs/access_log.log | head
+```
+
+Xem dòng đầu dưới dạng JSON dễ đọc:
+
+```bash
+cat samplelogs/access_log.log | head -1 | python -m json.tool
+```
+
+Đếm số dòng log trong file:
+
+```bash
+cat samplelogs/access_log.log | wc -l
+```
+
+> Bạn sẽ thấy file này có rất nhiều log mô phỏng người dùng thực.
+
+---
+
+### 2. Thay thế file log thực bằng file log giả lập
+
+Dừng CloudWatch Agent:
+
+```bash
+sudo systemctl stop amazon-cloudwatch-agent
+```
+
+Đặt file giả lập vào đúng vị trí CloudWatch Agent đọc log:
+
+```bash
+sudo cp samplelogs/access_log.log /var/log/www/access/access_log
+```
+
+> **Lưu ý:** Tên file phải là `access_log`, không phải `access_log.log`
+
+Khởi động lại CloudWatch Agent:
+
+```bash
+sudo systemctl start amazon-cloudwatch-agent
+```
+
+---
+
+### 3. Kiểm tra log giả lập trên CloudWatch
+
+- Mở AWS CloudWatch Console
+- Vào **Log Groups** → `apache/access`
+- Mở log stream tương ứng
+- Xác nhận:
+  - Có **nhiều dòng log** xuất hiện
+  - Có thể có **nhiều dòng cùng một timestamp** (do agent đọc nhanh file log lớn)
+
+> Như vậy bạn đã xác minh thành công rằng log truy cập giả lập đã được gửi đầy đủ lên CloudWatch Logs.
