@@ -1,5 +1,7 @@
 # Cloud Computing
 
+!["Kiến trúc"](./so_do_kien_truc.png)
+
 ## Phase 1: Lập kế hoạch kiến trúc và ước tính chi phí
 
 Pha đầu tiên là bước quan trọng để xác định kiến trúc tổng thể của giải pháp và ước tính chi phí triển khai trên AWS. Bạn sẽ thiết kế sơ đồ kiến trúc, xác định các dịch vụ cần dùng, và tính toán chi phí dựa trên thời gian sử dụng trong 12 tháng tại vùng `us-east-1`.
